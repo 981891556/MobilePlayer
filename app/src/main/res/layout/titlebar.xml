@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.example.liangjiacheng.mobileplayer.View.TitleBar xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="50dp"
     android:background="#ff3097fd"
@@ -28,6 +28,7 @@
         android:textColor="@drawable/titlebar_text_selector" />
 
     <RelativeLayout
+        android:id="@+id/rl_game"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <TextView
@@ -50,4 +51,4 @@
         android:paddingLeft="8dp"
         android:paddingRight="8dp"
         android:background="@drawable/record" />
-</LinearLayout>
+</com.example.liangjiacheng.mobileplayer.View.TitleBar>
