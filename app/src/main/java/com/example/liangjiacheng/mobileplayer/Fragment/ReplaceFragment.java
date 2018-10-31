@@ -11,8 +11,7 @@ import com.example.liangjiacheng.mobileplayer.Base.BasePager;
 
 /**
  * create by liangjiacheng on 2018/10/22  16:21
- * 这个类的作用是：
- */
+ * 这个类的作用是：之前MainActivity中的72行代码是报错的。但是写完这个类后就没报错了 */
 public class ReplaceFragment extends Fragment {
     private BasePager currPager;
 

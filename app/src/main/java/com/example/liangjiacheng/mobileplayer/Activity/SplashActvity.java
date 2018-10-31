@@ -10,7 +10,9 @@ import android.view.MotionEvent;
 import com.example.liangjiacheng.mobileplayer.R;
 
 public class SplashActvity extends Activity {
-  private Handler handler =   new Handler();
+    private Handler handler = new Handler();
+    private boolean isStartMain = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,10 +28,12 @@ public class SplashActvity extends Activity {
     }
 
     private void startMainActivity() {
-        Intent intent  = new Intent(SplashActvity.this, MainActivity.class);
-        startActivity(intent);
-        //关闭启动页面
-        finish();
+        if (!isStartMain) {
+            Intent intent = new Intent(SplashActvity.this, MainActivity.class);
+            startActivity(intent);
+            //关闭启动页面
+            finish();
+        }
     }
 
     @Override
