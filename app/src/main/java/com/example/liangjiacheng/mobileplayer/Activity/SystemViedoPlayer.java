@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -23,9 +24,10 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
+
 
 import com.example.liangjiacheng.mobileplayer.R;
+import com.example.liangjiacheng.mobileplayer.View.VideoView;
 import com.example.liangjiacheng.mobileplayer.domain.MediaItem;
 import com.example.liangjiacheng.mobileplayer.utils.Utils;
 
@@ -40,6 +42,8 @@ import java.util.Date;
 public class SystemViedoPlayer extends Activity implements View.OnClickListener {
     private static final int PROGRESS = 1;//视频更新进度
     private static final int HIDE_MEDIA_CONTORLLER = 2;//隐藏控制面板
+    private static final int FULL_SRCEEN = 1;//全屏
+    private static final int DEFAULT_SRCEEN = 2;//默认屏幕
     /**
      * 视频进度的更新
      */
@@ -76,6 +80,12 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
      * 2.实例化手势识别器，并且重写双击，单击，长按等方法
      * 3.onTouchEvent(),方法把事件传递给手势识别器，否则不能执行手势识别器的相关操作*/
     private GestureDetector detector;
+    private boolean isFullScreen = false;  //是否全屏
+
+    private int ScreenWidth = 0;//屏幕宽
+    private int ScreenHeight = 0;//屏幕高
+    private int videoWidth;//真实视频的宽
+    private int videoHeight;
 
     /**
      * Find the Views in the layout<br />
@@ -138,7 +148,11 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
             playNextVideo();
         } else if (v == btnVideoSwitchSrceen) {
             // Handle clicks for btnVideoSwitchSrceen
+            setFullScreenAndDefault();//设置播放屏幕大小
         }
+        //先移除旧的消息，再设置新的消息，这样就保证了在点击的是时候，控制面板不会自己动隐藏
+        handler.removeMessages(HIDE_MEDIA_CONTORLLER);
+        handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTORLLER,4000);
     }
 
     private void StartAndPause() {
@@ -347,6 +361,7 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
              */
             @Override
             public boolean onDoubleTap(MotionEvent e) {
+                setFullScreenAndDefault();
                 return super.onDoubleTap(e);
             }
 
@@ -369,6 +384,62 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
                 return super.onSingleTapConfirmed(e);
             }
         });
+
+        //得到屏幕的宽和高
+        /**方法1.....过时的方法*/
+//        ScreenWidth = getWindowManager().getDefaultDisplay().getWidth();
+//        ScreenHeight = getWindowManager().getDefaultDisplay().getHeight();
+        /**方法2.推荐。。。新的方式*/
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        ScreenWidth = displayMetrics.widthPixels;
+        ScreenHeight = displayMetrics.heightPixels;
+
+    }
+
+    //设置视频播放过程中的屏幕大小
+     private void setFullScreenAndDefault() {
+        if(isFullScreen){
+            //设置默认
+            setVideoType(DEFAULT_SRCEEN);
+        }else {
+            //设置全屏
+            setVideoType(FULL_SRCEEN);
+        }
+    }
+
+    //设置屏幕大小
+    private void setVideoType(int defaultSrceen) {
+        switch (defaultSrceen){
+            case FULL_SRCEEN: //全屏
+                //1.设置视频页面的大小
+                videoview.setVideoSize(ScreenWidth,ScreenHeight);
+                //2.设置按钮的状态--默认
+                btnSwitchPlayer.setBackgroundResource(R.drawable.btn_video_switch_srceen_default_selector);
+                isFullScreen = true;
+
+                break;
+            case DEFAULT_SRCEEN://默认
+                //1.设置视频页面的大小
+                int mVideoWidth = videoWidth;//视频真实的宽
+               int mVideoHeight = videoHeight;//视频真实的高
+                int width = ScreenWidth;//当前手机屏幕的宽
+                int height =ScreenHeight;//当前屏幕的宽
+
+                /** for compatibility, we adjust size based on aspect ratio  这是从源码中获取的*/
+                if ( mVideoWidth * height  < width * mVideoHeight ) {
+                    //Log.i("@@@", "image too wide, correcting");
+                    width = height * mVideoWidth / mVideoHeight;
+                } else if ( mVideoWidth * height  > width * mVideoHeight ) {
+                    //Log.i("@@@", "image too tall, correcting");
+                    height = width * mVideoHeight / mVideoWidth;
+                }
+                videoview.setVideoSize(width,height);
+                //2.设置按钮的状态--全屏
+                btnSwitchPlayer.setBackgroundResource(R.drawable.btn_video_switch_srceen_full_selector);
+                isFullScreen = false;
+                break;
+        }
     }
 
     class MyReceiver extends BroadcastReceiver {
@@ -379,6 +450,7 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
         }
     }
 
+    //电池
     private void setBattery(int level) {
         if (level <= 0) {
             ivBattery.setImageResource(R.drawable.ic_battery_0);
@@ -407,6 +479,8 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
         videoview.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
+                videoWidth =   mp.getVideoWidth();//获取视频的宽和高
+                videoHeight =   mp.getVideoHeight();
                 /***下面这行代码的作用是循环播放，这时候就不会回调播放完成这个方法*/
                 // mp.setLooping(true);
                 videoview.start();//开始播放.
@@ -418,6 +492,9 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
 
                 /**    2.发送消息*/
                 handler.sendEmptyMessage(PROGRESS);
+//                videoview.setVideoSize(mp.getVideoWidth(),mp.getVideoHeight());    //得到视频真正的高和宽
+                setVideoType(DEFAULT_SRCEEN);//默认播放屏幕大小
+
             }
         });
 
@@ -473,6 +550,7 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
          */
         @Override
         public void onStartTrackingTouch(SeekBar seekBar) {
+            handler.removeMessages(HIDE_MEDIA_CONTORLLER);
 
         }
 
@@ -484,7 +562,7 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
          */
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
-
+                handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTORLLER,4000);
         }
     }
 
