@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -76,9 +77,11 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
     private ArrayList<MediaItem> mediaItems; //传入进来的视频列表
     private int position;//要播放的列表中的具体位置
 
-    /**1.定义手势识别器
+    /**
+     * 1.定义手势识别器
      * 2.实例化手势识别器，并且重写双击，单击，长按等方法
-     * 3.onTouchEvent(),方法把事件传递给手势识别器，否则不能执行手势识别器的相关操作*/
+     * 3.onTouchEvent(),方法把事件传递给手势识别器，否则不能执行手势识别器的相关操作
+     */
     private GestureDetector detector;
     private boolean isFullScreen = false;  //是否全屏
 
@@ -86,6 +89,12 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
     private int ScreenHeight = 0;//屏幕高
     private int videoWidth;//真实视频的宽
     private int videoHeight;
+
+    private AudioManager am;//调节声音
+    private int currenVoice;//当前音量
+    private int MaxVoice; //最大音量 0-15
+    private boolean isMute = false;//是否是静音
+
 
     /**
      * Find the Views in the layout<br />
@@ -120,6 +129,10 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
         btnVideoStartPause.setOnClickListener(this);
         btnVideoNext.setOnClickListener(this);
         btnVideoSwitchSrceen.setOnClickListener(this);
+
+        //关联
+        seekBarVoice.setMax(MaxVoice);//设置音量的最大值
+        seekBarVoice.setProgress(currenVoice);//当前音量
     }
 
     /**
@@ -131,7 +144,9 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
     @Override
     public void onClick(View v) {
         if (v == btnVoice) {
+            isMute = !isMute;
             // Handle clicks for btnVoice
+            updataVoice(currenVoice, isMute);
         } else if (v == btnSwitchPlayer) {
             // Handle clicks for btnSwitchPlayer
         } else if (v == btnExit) {
@@ -152,7 +167,7 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
         }
         //先移除旧的消息，再设置新的消息，这样就保证了在点击的是时候，控制面板不会自己动隐藏
         handler.removeMessages(HIDE_MEDIA_CONTORLLER);
-        handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTORLLER,4000);
+        handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTORLLER, 4000);
     }
 
     private void StartAndPause() {
@@ -170,12 +185,14 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
         }
     }
 
-    /**播放上一个视频*/
+    /**
+     * 播放上一个视频
+     */
     private void playPreVideo() {
         if (mediaItems != null && mediaItems.size() > 0) {
             //播放上 一个
             position--;
-            if (position >=0) {
+            if (position >= 0) {
                 MediaItem mediaItem = mediaItems.get(position);
                 tvName.setText(mediaItem.getName());
                 videoview.setVideoPath(mediaItem.getData());
@@ -187,7 +204,10 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
             setButtonState();
         }
     }
-    /**播放下一个视频*/
+
+    /**
+     * 播放下一个视频
+     */
     private void playNextVideo() {
         if (mediaItems != null && mediaItems.size() > 0) {
             //播放下一个
@@ -207,38 +227,38 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
 
     //设置Button状态
     private void setButtonState() {
-        if (mediaItems !=null && mediaItems.size()>0){
-            if (mediaItems.size()==1){
+        if (mediaItems != null && mediaItems.size() > 0) {
+            if (mediaItems.size() == 1) {
                 //两个按钮都是设置灰色
                 btnVideoPre.setBackgroundResource(R.drawable.btn_pre_gray);
                 btnVideoPre.setEnabled(false);//不可以点击
                 btnVideoNext.setBackgroundResource(R.drawable.btn_next_gray);
                 btnVideoNext.setEnabled(false);//不可以点击
-            }else if (mediaItems.size()==2){
-                if (position==0){
+            } else if (mediaItems.size() == 2) {
+                if (position == 0) {
                     btnVideoPre.setBackgroundResource(R.drawable.btn_pre_gray);
                     btnVideoPre.setEnabled(false);//不可以点击
                     btnVideoNext.setBackgroundResource(R.drawable.btn_video_next_selector);
                     btnVideoNext.setEnabled(true);//不可以点击
-                }else if (position==mediaItems.size()-1){
+                } else if (position == mediaItems.size() - 1) {
                     btnVideoNext.setBackgroundResource(R.drawable.btn_next_gray);
                     btnVideoNext.setEnabled(false);//不可以点击
                     btnVideoPre.setBackgroundResource(R.drawable.btn_video_pre_selector);
                     btnVideoPre.setEnabled(true);//不可以点击
-                }else {
+                } else {
                     btnVideoPre.setBackgroundResource(R.drawable.btn_video_pre_selector);
                     btnVideoPre.setEnabled(true);//不可以点击
                     btnVideoNext.setBackgroundResource(R.drawable.btn_video_next_selector);
                     btnVideoNext.setEnabled(true);//不可以点击
                 }
-            }else {
-                if (position==0){
+            } else {
+                if (position == 0) {
                     btnVideoPre.setBackgroundResource(R.drawable.btn_pre_gray);
                     btnVideoPre.setEnabled(false);//不可以点击
-                }else if (position==mediaItems.size()-1){
+                } else if (position == mediaItems.size() - 1) {
                     btnVideoNext.setBackgroundResource(R.drawable.btn_next_gray);
                     btnVideoNext.setEnabled(false);//不可以点击
-                }else {
+                } else {
                     btnVideoPre.setBackgroundResource(R.drawable.btn_video_pre_selector);
                     btnVideoPre.setEnabled(true);//不可以点击
                     btnVideoNext.setBackgroundResource(R.drawable.btn_video_next_selector);
@@ -246,7 +266,7 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
                 }
 
             }
-        }else if (uri!=null){
+        } else if (uri != null) {
             //两个按钮都是设置灰色
             btnVideoPre.setBackgroundResource(R.drawable.btn_pre_gray);
             btnVideoPre.setEnabled(false);//不可以点击
@@ -345,7 +365,7 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
         utils = new Utils();
 
         //2.实例化手势识别器，并且重写双击，单击，长按等方法
-        detector = new GestureDetector(this,new GestureDetector.SimpleOnGestureListener(){
+        detector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
             /**长按
              * @param e
              */
@@ -371,16 +391,16 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
              */
             @Override
             public boolean onSingleTapConfirmed(MotionEvent e) {
-                    if (isShowMediaContorller){
-                        //如果当前是显示的，单击就实现隐藏效果
-                        HideMediaContorller();
-                        //把隐藏消息移除
-                        handler.removeMessages(HIDE_MEDIA_CONTORLLER);
-                    }else {
-                        ShowMediaContorller();//显示控制面板
-                        //发消息隐藏
-                        handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTORLLER,4000);
-                    }
+                if (isShowMediaContorller) {
+                    //如果当前是显示的，单击就实现隐藏效果
+                    HideMediaContorller();
+                    //把隐藏消息移除
+                    handler.removeMessages(HIDE_MEDIA_CONTORLLER);
+                } else {
+                    ShowMediaContorller();//显示控制面板
+                    //发消息隐藏
+                    handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTORLLER, 4000);
+                }
                 return super.onSingleTapConfirmed(e);
             }
         });
@@ -395,14 +415,19 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
         ScreenWidth = displayMetrics.widthPixels;
         ScreenHeight = displayMetrics.heightPixels;
 
+        //得到音量
+        am = (AudioManager) getSystemService(AUDIO_SERVICE);
+        currenVoice = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+        MaxVoice = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+
     }
 
     //设置视频播放过程中的屏幕大小
-     private void setFullScreenAndDefault() {
-        if(isFullScreen){
+    private void setFullScreenAndDefault() {
+        if (isFullScreen) {
             //设置默认
             setVideoType(DEFAULT_SRCEEN);
-        }else {
+        } else {
             //设置全屏
             setVideoType(FULL_SRCEEN);
         }
@@ -410,10 +435,10 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
 
     //设置屏幕大小
     private void setVideoType(int defaultSrceen) {
-        switch (defaultSrceen){
+        switch (defaultSrceen) {
             case FULL_SRCEEN: //全屏
                 //1.设置视频页面的大小
-                videoview.setVideoSize(ScreenWidth,ScreenHeight);
+                videoview.setVideoSize(ScreenWidth, ScreenHeight);
                 //2.设置按钮的状态--默认
                 btnSwitchPlayer.setBackgroundResource(R.drawable.btn_video_switch_srceen_default_selector);
                 isFullScreen = true;
@@ -422,19 +447,19 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
             case DEFAULT_SRCEEN://默认
                 //1.设置视频页面的大小
                 int mVideoWidth = videoWidth;//视频真实的宽
-               int mVideoHeight = videoHeight;//视频真实的高
+                int mVideoHeight = videoHeight;//视频真实的高
                 int width = ScreenWidth;//当前手机屏幕的宽
-                int height =ScreenHeight;//当前屏幕的宽
+                int height = ScreenHeight;//当前屏幕的宽
 
                 /** for compatibility, we adjust size based on aspect ratio  这是从源码中获取的*/
-                if ( mVideoWidth * height  < width * mVideoHeight ) {
+                if (mVideoWidth * height < width * mVideoHeight) {
                     //Log.i("@@@", "image too wide, correcting");
                     width = height * mVideoWidth / mVideoHeight;
-                } else if ( mVideoWidth * height  > width * mVideoHeight ) {
+                } else if (mVideoWidth * height > width * mVideoHeight) {
                     //Log.i("@@@", "image too tall, correcting");
                     height = width * mVideoHeight / mVideoWidth;
                 }
-                videoview.setVideoSize(width,height);
+                videoview.setVideoSize(width, height);
                 //2.设置按钮的状态--全屏
                 btnSwitchPlayer.setBackgroundResource(R.drawable.btn_video_switch_srceen_full_selector);
                 isFullScreen = false;
@@ -479,8 +504,8 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
         videoview.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
-                videoWidth =   mp.getVideoWidth();//获取视频的宽和高
-                videoHeight =   mp.getVideoHeight();
+                videoWidth = mp.getVideoWidth();//获取视频的宽和高
+                videoHeight = mp.getVideoHeight();
                 /***下面这行代码的作用是循环播放，这时候就不会回调播放完成这个方法*/
                 // mp.setLooping(true);
                 videoview.start();//开始播放.
@@ -520,8 +545,47 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
             }
         });
         //设置SeekBar状态变化的监听
-        seekBarVideo.setOnSeekBarChangeListener(new VideoOnSeekBarChangeListener());
+        seekBarVideo.setOnSeekBarChangeListener(new VideoOnSeekBarChangeListener());//视频播放进度
+        seekBarVoice.setOnSeekBarChangeListener(new VoiceOnSeekBarChangeListener());//声音
     }
+
+    class VoiceOnSeekBarChangeListener implements SeekBar.OnSeekBarChangeListener {
+
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            if (fromUser) {
+                if (progress > 0) {
+                    isMute = false;
+                } else {
+                    isMute = true;
+                }
+                updataVoice(progress, false);//更新音量
+            }
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+            handler.removeMessages(HIDE_MEDIA_CONTORLLER);
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTORLLER, 4000);
+        }
+    }
+
+    //更新音量
+    private void updataVoice(int progress, boolean isMute) {
+        if (isMute) {
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0); //如果1调用系统，0则不调用
+            seekBarVoice.setProgress(0);
+        } else {
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0); //如果1调用系统，0则不调用
+            seekBarVoice.setProgress(progress);
+            currenVoice = progress;
+        }
+    }
+
 
     /**
      *
@@ -562,7 +626,7 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
          */
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
-                handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTORLLER,4000);
+            handler.sendEmptyMessageDelayed(HIDE_MEDIA_CONTORLLER, 4000);
         }
     }
 
@@ -594,14 +658,15 @@ public class SystemViedoPlayer extends Activity implements View.OnClickListener 
     }
 
 
-    public void ShowMediaContorller(){
+    public void ShowMediaContorller() {
         //显示控制面板
         media_controller.setVisibility(View.VISIBLE);
-        isShowMediaContorller=true;
+        isShowMediaContorller = true;
     }
-    public void HideMediaContorller(){
+
+    public void HideMediaContorller() {
         //隐藏控制面板
         media_controller.setVisibility(View.GONE);
-        isShowMediaContorller=false;
+        isShowMediaContorller = false;
     }
 }
