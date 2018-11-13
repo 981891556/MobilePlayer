@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">MobilePlayer</string>
+    <string name="player_name">MobilePlayer --（系统推荐）</string>
+
 </resources>

@@ -1,9 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.liangjiacheng.mobileplayer">
 
+    <!--<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />-->
+    <!--<uses-permission android:name="android.permission.INTERNET" />-->
+
+    <!--&lt;!&ndash;集成&ndash;&gt;-->
+    <!--<uses-permission android:name="android.permission.WAKE_LOCK" />-->
+    <!--<uses-permission android:name="android.permission.INTERNET" />-->
+    <!--<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />-->
+    <!--<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />-->
+    <!--<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />-->
+    <!--<uses-permission android:name="android.permission.READ_PHONE_STATE" />-->
+
+    <!--<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />-->
+
+
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!--连接网络权限，用于执行云端语音能力 -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!--获取手机录音机使用权限，听写、识别、语义理解需要用到此权限 -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!--读取网络信息状态 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <!--获取当前wifi状态 -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <!--允许程序改变网络连接状态 -->
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
+    <!--读取手机信息权限 -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <!--读取联系人权限，上传联系人需要用到此权限 -->
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <!--外存储写权限， 构建语法需要用到此权限 -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <!--外存储读权限，构建语法需要用到此权限 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <!--配置权限，用来记录应用配置信息 -->
+    <!--<uses-permission android:name="android.permission.WRITE_SETTINGS"/>-->
+    <!--<uses-permission android:name="android.permission.VIBRATE" />-->
+
+
+
+
+    <!--   android:name=".MyApplication"    这一步是初始化xutils的步奏之一  -->
     <application
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -22,10 +70,53 @@
             android:launchMode="singleTask"
             android:screenOrientation="portrait" />
         <!--android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"作用：全屏-->
+
+        <!--   android:label="@string/player_name"   系统推荐~~~-->
         <activity
             android:name=".Activity.SystemViedoPlayer"
-            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
-            android:screenOrientation="landscape" />
+            android:configChanges="keyboardHidden|screenSize|orientation"
+            android:screenOrientation="landscape"
+            android:label="@string/player_name"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="rtsp" />
+            </intent-filter>
+
+            <intent-filter android:scheme="http"
+                tools:ignore="AppLinkUrlError">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="video/*" />
+                <data android:mimeType="application/sdp" />
+            </intent-filter>
+            <intent-filter >
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:mimeType="video/mp4" />
+                <data android:mimeType="video/3gp" />
+                <data android:mimeType="video/3gpp" />
+                <data android:mimeType="video/3gpp2" />
+            </intent-filter>
+        </activity>
+
+        <!-- Don't forgot InitActivity -->
+        <activity
+            android:name="io.vov.vitamio.activity.InitActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation"
+            android:launchMode="singleTop"
+            android:theme="@android:style/Theme.NoTitleBar"
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="stateAlwaysHidden" />
+
+        <activity android:name=".Activity.VitamioVideoPlayer"
+            android:configChanges="keyboardHidden|screenSize|orientation"
+            android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"/>
     </application>
 
 </manifest>
