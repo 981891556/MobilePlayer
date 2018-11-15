@@ -7,9 +7,13 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.liangjiacheng.mobileplayer.R;
 import com.example.liangjiacheng.mobileplayer.domain.MediaItem;
 import com.example.liangjiacheng.mobileplayer.utils.Utils;
+import com.squareup.picasso.Picasso;
 
 import org.xutils.x;
 
@@ -30,7 +34,7 @@ public class Net_VideoPagerAdapter extends BaseAdapter {
     }
 
     @Override
-    public int getCount()  {
+    public int getCount() {
         return mediaItems.size();
     }
 
@@ -55,7 +59,7 @@ public class Net_VideoPagerAdapter extends BaseAdapter {
             viewHolder.iv_icon = convertView.findViewById(R.id.iv_icon);//图片
             viewHolder.tv_name = convertView.findViewById(R.id.tv_name);//视频名称
             viewHolder.tev_desc = convertView.findViewById(R.id.tev_desc);//描述
-             convertView.setTag(viewHolder);/**设置setTag的作用是什么？*/
+            convertView.setTag(viewHolder);/**设置setTag的作用是什么？*/
         } else {
             //有setTag就有getTag
             viewHolder = (ViewHolder) convertView.getTag();
@@ -64,7 +68,25 @@ public class Net_VideoPagerAdapter extends BaseAdapter {
         MediaItem mediaItem = mediaItems.get(position);
         viewHolder.tv_name.setText(mediaItem.getName());//得到网络视频的名称
         viewHolder.tev_desc.setText(mediaItem.getDesc());//得到网络视频的描述
-        x.image().bind(viewHolder.iv_icon,mediaItem.getImageUrl());//得到网路视频的图片
+
+//       1. 使用Xutils3请求图片
+//        x.image().bind(viewHolder.iv_icon,mediaItem.getImageUrl());//得到网路视频的图片
+//        2.使用Glide请求图片
+        Glide.with(context).load(mediaItem.getImageUrl())//load（）方法得到地址
+                .apply(new RequestOptions()
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .placeholder(R.drawable.video_default)  //默认的图片
+                        .error(R.drawable.video_default)) //出错的时候显示这张
+                .into(viewHolder.iv_icon);//.into（）绑定到控件上
+/**   上面的代码和视频的不太一样：  如果没有.apply(new RequestOptions()，
+ * 那么 .diskCacheStrategy(DiskCacheStrategy.ALL) 这句将会报错 。
+ *  .placeholder(R.drawable.btn_exit))这句也是通过百度加上去的 **/
+//          3.使用Picasso请求图片
+//        Picasso.with(context).load(mediaItem.getImageUrl())//load（）方法得到地址
+//                .diskCacheStrategy(DiskCacheStrategy.ALL)
+//                .placeholder(R.drawable.video_default)  //默认的图片
+//                .error(R.drawable.video_default) //出错的时候显示这张
+//                .into(viewHolder.iv_icon);//.into（）绑定到控件上
 
         return convertView;
     }

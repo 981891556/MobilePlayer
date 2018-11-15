@@ -819,6 +819,9 @@ public class VitamioVideoPlayer extends Activity implements View.OnClickListener
 
     @Override
     protected void onDestroy() {
+        //移除所有消息：
+        handler.removeCallbacksAndMessages(null);
+
         //  super.onDestroy();的作用  ：释放资源的时候，先释放子类，再释放父类。如果先释放父类就会报空指针
         if (receiver != null) {
             unregisterReceiver(receiver);//取消注册广播
