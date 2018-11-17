@@ -15,17 +15,18 @@ import java.util.ArrayList;
 
 /**
  * create by liangjiacheng on 2018/10/26  15:41
- * 这个类的作用是：VideoPager的适配器
+ * 这个类的作用是：VideoPager的适配器 ,一个适配器两个页面使用:分别是LocalAudioPager和LocalVideoPager
  */
 public class VideoPagerAdapter extends BaseAdapter {
     private Utils utils;
     private final Context context;
     private final ArrayList<MediaItem> mediaItems;
-
-    public VideoPagerAdapter(Context context, ArrayList<MediaItem> mediaItems) {
+    private final boolean isVideo ;
+    public VideoPagerAdapter(Context context, ArrayList<MediaItem> mediaItems,boolean isVideo) {
         this.context = context;
         this.mediaItems = mediaItems;
         utils = new Utils();
+        this.isVideo = isVideo;
     }
 
     @Override
@@ -65,6 +66,10 @@ public class VideoPagerAdapter extends BaseAdapter {
         viewHolder.tv_name.setText(mediaItem.getName());
         viewHolder.tv_size.setText(android.text.format.Formatter.formatFileSize(context, mediaItem.getSize()));/**1android.text.format.Formatter.formatFileSize这个工具的作用是：在大于900转换成KB，如果kb大于900就转换成MB，以此类推*/
         viewHolder.tv_duration.setText(utils.stringForTime((int) mediaItem.getDuration()));
+
+        if (!isVideo){//如果不是视频,是音频
+            viewHolder.iv_icon.setImageResource(R.drawable.music_default_bg);
+        }
         return convertView;
     }
 

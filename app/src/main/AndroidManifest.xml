@@ -117,6 +117,15 @@
             android:configChanges="keyboardHidden|screenSize|orientation"
             android:screenOrientation="landscape"
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"/>
+
+        <activity android:name=".Activity.AudioPlayerActivity"/>
+
+        <service android:name="com.example.liangjiacheng.mobileplayer.Service.MusicPlayerService">
+            <intent-filter>
+                <action android:name="com.liangjiacheng.mobileplayer_OPENAUDIO"/>
+            </intent-filter>
+        </service>
+
     </application>
 
 </manifest>

@@ -96,7 +96,7 @@ public class LocalVideoPager extends BasePager {
             if (mediaItems != null && mediaItems.size() > 0) {
                 //有数据
                 //设置适配器，也就是显示内容
-                videoPagerAdapter = new VideoPagerAdapter(context,mediaItems);//看Adapter的代码参数
+                videoPagerAdapter = new VideoPagerAdapter(context,mediaItems,true);//看Adapter的代码参数
                 lv_video_pager.setAdapter(videoPagerAdapter);
                 //把文本隐藏起来
                 tv_nomedia.setVisibility(View.GONE);
